@@ -50,7 +50,7 @@ public class UserDAO {
 			if(rs.next()) flag = true;
 			
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 		return flag;
 	}
@@ -70,6 +70,67 @@ public class UserDAO {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+	}
+
+	public int userCheck(String id, String pw) {
+		String sql = "SELECT user_pw FROM my_user WHERE user_id=?";
+		int result = -1;
+		
+		try(Connection conn = ds.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setString(1, id);
+			ResultSet rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				String dbPw = rs.getString("user_pw");
+				if(dbPw.equals(pw)) result = 1;
+				else result = 0;
+			} else result = -1;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	public UserVO getUserInfo(String id) {
+		String sql = "SELECT * FROM my_user WHERE user_id='" + id + "'";
+		UserVO vo = null;
+		
+		try(Connection conn = ds.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				ResultSet rs = pstmt.executeQuery()) {
+			if(rs.next()) {
+				vo = new UserVO(
+						rs.getString("user_id"),
+						rs.getString("user_pw"),
+						rs.getString("user_name"),
+						rs.getString("user_email"),
+						rs.getString("user_address")
+						);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return vo;
+	}
+
+	public void changePassword(String id, String newPw) {
+		String sql = "UPDATE my_user SET user_pw = ? WHERE user_id = ?";
+		
+		try(Connection conn = ds.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setString(1, newPw);
+			pstmt.setString(2, id);
+			pstmt.executeUpdate();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		
 	}
 	
