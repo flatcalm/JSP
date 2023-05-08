@@ -3,6 +3,7 @@ package com.myweb.user.model;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -17,7 +18,7 @@ public class UserDAO {
 	// 커넥션 풀의 정보를 담을 변수를 선언.
 	private DataSource ds;
 	
-	public UserDAO() {
+	private UserDAO() {
 		// 커넥션 풀 정보 불러오기.
 		try {
 			InitialContext ct = new InitialContext();
@@ -126,11 +127,56 @@ public class UserDAO {
 			pstmt.setString(1, newPw);
 			pstmt.setString(2, id);
 			pstmt.executeUpdate();
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
+		
+	}
+
+	public void updateUser(UserVO vo) {
+		String sql = "UPDATE my_user "
+				+ "SET user_name = ?, user_email = ?, user_address = ? "
+				+ "WHERE user_id = ?";
+		
+//		String id = vo.getUserId();
+//		String name = vo.getUserName();
+//		String email = vo.getUserEmail();
+//		String address = vo.getUserAddress();
+//		
+//		try(Connection conn = ds.getConnection();
+//				PreparedStatement pstmt = conn.prepareStatement(sql)) {
+//			pstmt.setString(1, name);
+//			pstmt.setString(2, email);
+//			pstmt.setString(3, address);
+//			pstmt.setString(4, id);
+//			pstmt.executeUpdate();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+		
+		try(Connection conn = ds.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setString(1, vo.getUserName());
+			pstmt.setString(2, vo.getUserEmail());
+			pstmt.setString(3, vo.getUserAddress());
+			pstmt.setString(4, vo.getUserId());
+			pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	public void deleteUser(String id) {
+		String sql = "DELETE FROM my_user WHERE user_id = '" + id + "'";
+		
+		try(Connection conn = ds.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 	}
 	

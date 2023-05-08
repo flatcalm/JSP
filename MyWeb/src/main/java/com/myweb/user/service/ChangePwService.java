@@ -1,11 +1,9 @@
 package com.myweb.user.service;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import com.myweb.user.model.UserDAO;
 import com.myweb.user.model.UserVO;
@@ -26,47 +24,88 @@ public class ChangePwService implements IUserService {
 	    5. 현재 비밀번호가 불일치 -> "현재 비밀번호가 다릅니다." 경고창 출력 후 뒤로가기.
 	    */
 		
+//		// 내가 한거
+//		String oldPw = request.getParameter("old_pw");
+//		String newPw = request.getParameter("new_pw");
+//		UserDAO dao = UserDAO.getInstance();
+//		HttpSession session = request.getSession();
+//		UserVO vo = (UserVO) session.getAttribute("user");
+//		String id = vo.getUserId();
+//		
+//		response.setContentType("text/html; charset=UTF-8");
+//		String htmlCode;
+//		PrintWriter out;
+//		
+//		try {
+//			out = response.getWriter();
+//			
+//			switch (dao.userCheck(id, oldPw)) {
+//			case 0: 
+//				htmlCode =  "<script>\r\n"
+//	                    + "alert('현재 비밀번호가 다릅니다.');\r\n"
+//	                    + "history.back();\r\n"
+//	                    + "</script>";
+//				out.print(htmlCode);
+//				out.flush();
+//				out.close();
+//				return;
+//			case 1:
+//				dao.changePassword(id, newPw);
+//				htmlCode =  "<script>\r\n"
+//	                    + "alert('비밀번호가 정상적으로 변경되었습니다.');\r\n"
+//	                    + "location.href='/MyWeb/myPage.user';\r\n"
+//	                    + "</script>";
+//				out.print(htmlCode);
+//				out.flush();
+//				out.close();
+//				return;
+//			
+//			default:
+//				
+//			}
+//			
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+		
+		// 강사님
 		String oldPw = request.getParameter("old_pw");
 		String newPw = request.getParameter("new_pw");
-		UserDAO dao = UserDAO.getInstance();
-		HttpSession session = request.getSession();
-		UserVO vo = (UserVO) session.getAttribute("user");
-		String id = vo.getUserId();
 		
+//		HttpSession session = request.getSession();
+//		UserVO vo = (UserVO) session.getAttribute("user");
+//		String id = vo.getUserId();
+		
+		String id = ((UserVO)request.getSession()
+									.getAttribute("user"))
+									.getUserId();
+		UserDAO dao = UserDAO.getInstance();
 		response.setContentType("text/html; charset=UTF-8");
 		String htmlCode;
-		PrintWriter out;
+		PrintWriter out = null;
 		
 		try {
 			out = response.getWriter();
-			
-			switch (dao.userCheck(id, oldPw)) {
-			case 0: 
-				htmlCode =  "<script>\r\n"
-	                    + "alert('현재 비밀번호가 다릅니다.');\r\n"
-	                    + "history.back();\r\n"
-	                    + "</script>";
-				out.print(htmlCode);
-				out.flush();
-				out.close();
-				return;
-			case 1:
+			if(dao.userCheck(id, oldPw) == 1) {
 				dao.changePassword(id, newPw);
-				htmlCode =  "<script>\r\n"
-	                    + "alert('비밀번호가 정상적으로 변경되었습니다.');\r\n"
-	                    + "location.href='/MyWeb/myPage.user';\r\n"
-	                    + "</script>";
+				htmlCode = "<script>\r\n"
+                        + "                alert('비밀번호가 정상적으로 변경되었습니다.');\r\n"
+                        + "                location.href='/MyWeb/myPage.user';\r\n"
+                        + "                </script>";
 				out.print(htmlCode);
 				out.flush();
-				out.close();
-				return;
-			
-			default:
-				
+			} else {
+				htmlCode = "<script>\r\n"
+                        + "                alert('현재 비밀번호가 다릅니다.');\r\n"
+                        + "                history.back();\r\n"
+                        + "                </script>";
+				out.print(htmlCode);
+				out.flush();
 			}
-			
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			out.close();
 		}
 
 	}
