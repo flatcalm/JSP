@@ -12,9 +12,9 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 public class BoardDAO implements IBoardDAO {
-	
+
 	private DataSource ds;
-	
+
 	private BoardDAO() {
 		try {
 			InitialContext ct = new InitialContext();
@@ -23,16 +23,16 @@ public class BoardDAO implements IBoardDAO {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private static BoardDAO dao = new BoardDAO();
-	
+
 	public static BoardDAO getInstance() {
 		if(dao == null) {
 			dao = new BoardDAO();
 		}
 		return dao;
 	}
-	
+
 	//////////////////////////////////////////////////////////////////////
 
 	@Override
@@ -40,7 +40,7 @@ public class BoardDAO implements IBoardDAO {
 		String sql = "INSERT INTO my_board "
 				+ "(board_id, writer, title, content) "
 				+ "VALUES (board_seq.NEXTVAL, ?, ?, ?)";
-		
+
 		try(Connection conn = ds.getConnection();
 				PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, writer);
@@ -56,7 +56,7 @@ public class BoardDAO implements IBoardDAO {
 	@Override
 	public List<BoardVO> listBoard() {
 		List<BoardVO> articles = new ArrayList<>();
-		String sql = "SELECT * FROM my_board";
+		String sql = "SELECT * FROM my_board ORDER BY board_id DESC";
 		try(Connection conn = ds.getConnection();
 				PreparedStatement pstmt = conn.prepareStatement(sql);
 				ResultSet rs = pstmt.executeQuery()) {
@@ -79,20 +79,88 @@ public class BoardDAO implements IBoardDAO {
 
 	@Override
 	public BoardVO contentBoard(int bId) {
-		// TODO Auto-generated method stub
-		return null;
+		BoardVO vo = null;
+		String sql = "SELECT * FROM my_board WHERE board_id = " + bId;
+		try(Connection conn = ds.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				ResultSet rs = pstmt.executeQuery()) {
+			if(rs.next()) {
+				vo = new BoardVO(
+						rs.getInt("board_id"),
+						rs.getString("writer"),
+						rs.getString("title"),
+						rs.getString("content"),
+						rs.getTimestamp("reg_date").toLocalDateTime(),
+						rs.getInt("hit")
+						);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return vo;
 	}
 
 	@Override
 	public void updateBoard(int bId, String title, String content) {
-		// TODO Auto-generated method stub
-
+		String sql = "UPDATE my_board SET title = ?, content = ? WHERE board_id = " + bId;
+		try(Connection conn = ds.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setString(1, title);
+			pstmt.setString(2, content);
+			pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void deleteBoard(int bId) {
-		// TODO Auto-generated method stub
+		String sql = "DELETE FROM my_board WHERE board_id = " + bId;
+		try(Connection conn = ds.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
+	}
+	
+	@Override
+	public List<BoardVO> searchBoard(String category, String keyword) {
+		List<BoardVO> searchList = new ArrayList<>();
+		String sql = "SELECT * FROM my_board "
+				+ "WHERE " + category + " LIKE '%" + keyword + "%'";
+		try(Connection conn = ds.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				ResultSet rs = pstmt.executeQuery()) {
+			while(rs.next()) {
+				BoardVO vo = new BoardVO(
+						rs.getInt("board_id"),
+						rs.getString("writer"),
+						rs.getString("title"),
+						rs.getString("content"),
+						rs.getTimestamp("reg_date").toLocalDateTime(),
+						rs.getInt("hit")
+						);
+				searchList.add(vo);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return searchList;
+	}
+
+	@Override
+	public void upHit(int bId) {
+		String sql = "UPDATE my_board SET hit = hit + 1 WHERE board_id = " + bId;
+		try(Connection conn = ds.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 }
