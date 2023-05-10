@@ -43,7 +43,9 @@ public class ContentService implements IBoardService {
 					break;
 				}
 			}
-			if(!flag) dao.upHit(bId);
+			if(!flag) {
+				dao.upHit(bId);
+			}
 		}
 
 
